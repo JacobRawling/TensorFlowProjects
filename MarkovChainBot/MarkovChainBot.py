@@ -24,6 +24,7 @@ class MarkovChainBot:
 			else:
 				self.wordList[ key ] = []
 				self.wordList[ key ].append( words[self.chainLength] )
+
 	def CleanString(self, message):
 		message = re.sub('[:;@/?.>,<\|\[\]\"/\*\'^\\+=*\(\)\{\}0-9]','',message )
 		message = message.encode('ascii', 'ignore').decode('ascii')
@@ -67,6 +68,13 @@ class MarkovChainBot:
 		
 		return returnPhrase
 
+	def GenerateRandomMessage(self):
+		if len(self.wordList.keys()) != 0:
+			key = list(random.choice(self.wordList.keys()))
+			return self.GenerateMessage(key)
+		return "No dictionary found."
+
+
 	def SaveDictionary(self):
 		with open('data.p', 'wb') as fp:
     			pickle.dump(self.wordList, fp)
@@ -100,3 +108,21 @@ class RedditBot(MarkovChainBot):
 		pbar.close()
 		self.SaveDictionary()
 
+	def LearnFromRandomSubbredit(self, nSubmission):
+		get_random_subreddit
+		r = praw.Reddit(user_agent='my_cool_application')
+		subreddit = r.get_random_subreddit(false)
+		submissions = subreddit.get_top(limit=nSubmission)
+		print 'Getting all comments in first ' + `nSubmission` + ' posts from: ' + subreddit
+
+		pbar = tqdm(total=nSubmission,ncols=100)
+		for submission in tqdm(submissions):
+			pbar.update(1)
+			self.Train(self.CleanString(submission.title))
+			for comment in submission.comments:
+				try:
+					self.Train(self.CleanString(comment.body))
+				except AttributeError:
+					print "ERROR: comment did not have body."
+		pbar.close()
+		self.SaveDictionary()
